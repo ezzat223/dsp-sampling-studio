@@ -1,83 +1,42 @@
-import matplotlib.pyplot as plt
-import numpy as np
+from select import select
 import streamlit as st
-import matplotlib.pyplot as plt
-import numpy as np
-import itertools
-st.write('''# Sine Wave!''')
-# Generating time data using arange function from numpy
-# time = np.arange(0, 20*np.pi, 0.01) 
-frequency = st.slider('frequency',1, 10, 1, 1)  # freq (Hz)
-amplitude=st.slider('amplitude',1,10,1,1)
-timex = np.linspace(0, 3, 1200) #time steps
-sine = amplitude * np.sin(2 * np.pi * frequency* timex) # sine wave 
-# Finding amplitude at each time
-def periodicf(li,lf,f,x):
-    if x>=li and x<=lf :
-        return f(x)
-    elif x>lf:
-        x_new=x-(lf-li)
-        return periodicf(li,lf,f,x_new)
-    elif x<(li):
-        x_new=x+(lf-li)
-        return periodicf(li,lf,f,x_new)
-
-
-
-# Finally displaying the plot
-#plt.show()
-fig=plt.figure(figsize=(10,5))
-ax=fig.add_subplot(1,1,1)
-
-
-# Settng title for the plot in blue color
-plt.title('Sine Wave', color='b')
-
-# Setting x axis label for the plot
-plt.xlabel('Time'+ r'$\rightarrow$')
-
-# Setting y axis label for the plot
-plt.ylabel('Sin(time) '+ r'$\rightarrow$')
-
-# Showing grid
-plt.grid()
-
-# Highlighting axis at x=0 and y=0
-plt.axhline(y=0, color='k')
-plt.axvline(x=0, color='k')
-
-# Plotting time vs amplitude using plot function from pyplot
-plt.plot(timex, sine,'r-')
-st.pyplot(fig)
-
-
-
-chart = st.line_chart(np.zeros(shape=(1,1)))
 import time
-x = np.arange(0, 100*np.pi, 0.1)
-for i in itertools.count(start=1):
-    y = amplitude*np.sin(x[i]*frequency)
-    #amplitude * np.sin(2 * np.pi * frequency* timex)
-    chart.add_rows([y])
-    time.sleep(0.01)
+import plotly.graph_objects as go
+import pandas as pd
+import numpy as np
+import streamlit.components.v1 as components
+
+df = pd.read_csv('ECG.csv')
+
+timeaxis= df['time'].tolist()
+amplitude = df['amplitude'].tolist()
+#defining containers
+header = st.container()
+select_param = st.container()
+plot_spot = st.empty()
+#title
+with header:
+    st.title("Sampling Studio")
+#select parmeter drop down
+with select_param:
+    param_lst = list(df.columns)
+    param_lst.remove('time')
+    select_param = st.selectbox('Select an Amplitude Parameter',   param_lst)
+#function to make chart
 
 
-''' # 100 linearly spaced numbers
-x = np.linspace(-np.pi,np.pi,100)
-
-# the function, which is y = sin(x) here
-y = np.sin(x)
-
-# setting the axes at the centre
-fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
-ax.spines['left'].set_position('center')
-ax.spines['bottom'].set_position('center')
-ax.spines['right'].set_color('none')
-ax.spines['top'].set_color('none')
-ax.xaxis.set_ticks_position('bottom')
-ax.yaxis.set_ticks_position('left')
-plt.plot(x,y, 'b-')
-# plot the function
-
-st.write(fig) '''
+def make_chart(df, y_col, ymin, ymax):
+    fig = go.Figure(layout_yaxis_range=[ymin, ymax])
+    fig.add_trace(go.Scatter(x=df['time'], y=df[y_col],           mode='lines'))
+    fig.update_layout(width=900, height=570, xaxis_title='time',
+    yaxis_title=y_col)
+    st.write(fig)
+    #func call
+n = len(df)
+ymax = max(df['amplitude'])+0.4
+ymin = min(df['amplitude'])-0.4
+for i in range(0, n-1, 1):
+    df_tmp = df.iloc[i:i+500, :]
+    with plot_spot:
+        make_chart(df_tmp, select_param,ymin, ymax)
+    time.sleep(0.05)
