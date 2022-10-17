@@ -30,7 +30,6 @@ fig=plt.figure(figsize=(10,5))
 ax=fig.add_subplot(1,1,1)
 
 
-
 # Settng title for the plot in blue color
 plt.title('Sine Wave', color='b')
 
