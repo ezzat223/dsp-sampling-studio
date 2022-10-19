@@ -87,7 +87,7 @@ def generate ():
         # plt.plot(time, amplitude)
        
         
-
+    #comment
         
     except Exception as e:
         st.write("Please upload the signal.")
